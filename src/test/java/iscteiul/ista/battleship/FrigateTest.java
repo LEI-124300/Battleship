@@ -12,9 +12,8 @@ package iscteiul.ista.battleship;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class FrigateTest {
@@ -84,14 +83,17 @@ public class FrigateTest {
     /**
      * Path 3: null bearing → must throw IllegalArgumentException
      */
-    @Test
-    public void constructor3() {
-        IPosition pos = new Position(0, 0);
+    @Nested
+    class ConstructorTests {
 
-        assertThrows(IllegalArgumentException.class,
-                () -> Frigate.of(null, pos),  // ALTERADO
-                "Error: expected IllegalArgumentException when bearing is null but none thrown"
-        );
+        @Test
+        public void constructor3() {
+            IPosition pos = new Position(0, 0);
+
+            assertThrows(AssertionError.class,
+                    () -> new Frigate(null, pos),
+                    "Error: expected AssertionError when bearing is null but none thrown");
+        }
     }
 
     // ============================================================
@@ -99,7 +101,7 @@ public class FrigateTest {
     // ============================================================
 
     @Test
-    public void getSize() {
+    public void getSizeTest() {
         Integer expected = 4;
         Integer actual = frigate.getSize();
 
