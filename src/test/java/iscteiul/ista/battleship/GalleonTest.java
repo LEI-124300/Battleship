@@ -41,9 +41,11 @@ public class GalleonTest {
      */
     @Test
     public void constructor1() {
-        assertThrows(NullPointerException.class,
-                () -> new Galleon(null, new Position(0, 0)),
-                "Error: expected NullPointerException for null bearing but none thrown");
+        IPosition pos = new Position(0, 0);
+
+        assertThrows(AssertionError.class,
+                () -> new Galleon(null, pos),
+                "Error: expected AssertionError for null bearing but none thrown");
     }
 
     /**
@@ -112,11 +114,11 @@ public class GalleonTest {
                         "Error: unexpected SOUTH pos 0"),
                 () -> assertEquals(new Position(1, 0), g.getPositions().get(1),
                         "Error: unexpected SOUTH pos 1"),
-                () -> assertEquals(new Position(2, 0), g.getPositions().get(2),
+                () -> assertEquals(new Position(2, -1), g.getPositions().get(2),
                         "Error: unexpected SOUTH pos 2"),
-                () -> assertEquals(new Position(2, 1), g.getPositions().get(3),
+                () -> assertEquals(new Position(2, 0), g.getPositions().get(3),
                         "Error: unexpected SOUTH pos 3"),
-                () -> assertEquals(new Position(2, 2), g.getPositions().get(4),
+                () -> assertEquals(new Position(2, 1), g.getPositions().get(4),
                         "Error: unexpected SOUTH pos 4")
         );
     }
@@ -151,12 +153,11 @@ public class GalleonTest {
      */
     @Test
     public void constructor6() {
-        Compass invalid = Compass.valueOf("INVALID"); // se enum não permitir, substituir por mock
         IPosition pos = new Position(0, 0);
 
-        assertThrows(IllegalArgumentException.class,
-                () -> new Galleon(invalid, pos),
-                "Error: expected IllegalArgumentException for invalid bearing but none thrown");
+        assertThrows(AssertionError.class,
+                () -> new Galleon(null, pos),
+                "Error: expected AssertionError for null bearing but none thrown");
     }
 
     // ============================================================

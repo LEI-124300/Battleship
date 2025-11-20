@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class FrigateTest {
@@ -96,13 +97,11 @@ public class FrigateTest {
      */
     @Test
     public void constructor3() {
-        // Assume an invalid enum value or mock. Here using a dummy invalid case:
-        Compass invalid = Compass.valueOf("INVALID"); // If enum does not allow, mock instead.
         IPosition pos = new Position(0, 0);
 
-        assertThrows(IllegalArgumentException.class,
-                () -> new Frigate(invalid, pos),
-                "Error: expected IllegalArgumentException for invalid bearing but none thrown");
+        assertThrows(AssertionError.class,
+                () -> new Frigate(null, pos),
+                "Error: expected AssertionError when bearing is null but none thrown");
     }
 
     // ============================================================
