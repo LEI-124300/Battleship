@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("JUnit 6 Tests for Carrack (size 3)")
 class CarrackTest {
 
+    
     IPosition startPos;
 
     @BeforeEach
