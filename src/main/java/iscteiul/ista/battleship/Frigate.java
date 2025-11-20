@@ -12,7 +12,8 @@ public class Frigate extends Ship {
      * @param pos
      */
     public Frigate(Compass bearing, IPosition pos) throws IllegalArgumentException {
-        super(Frigate.NAME, bearing, pos);
+        super(NAME, bearing, pos);
+
         switch (bearing) {
             case NORTH:
             case SOUTH:
@@ -24,9 +25,14 @@ public class Frigate extends Ship {
                 for (int c = 0; c < SIZE; c++)
                     getPositions().add(new Position(pos.getRow(), pos.getColumn() + c));
                 break;
-            default:
-                throw new IllegalArgumentException("ERROR! invalid bearing for thr frigate");
         }
+    }
+
+    public static Frigate of(Compass bearing, IPosition pos) {
+        if (bearing == null) {
+            throw new IllegalArgumentException("ERROR! bearing cannot be null for the frigate");
+        }
+        return new Frigate(bearing, pos);
     }
 
     /*

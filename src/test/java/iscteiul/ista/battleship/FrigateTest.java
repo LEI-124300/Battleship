@@ -25,10 +25,9 @@ public class FrigateTest {
 
     @BeforeEach
     public void setUp() {
-        // Default initial values — each test that needs a different path overrides these.
         defaultBearing = Compass.NORTH;
         defaultPos = new Position(5, 5);
-        frigate = new Frigate(defaultBearing, defaultPos);
+        frigate = Frigate.of(defaultBearing, defaultPos);  // ALTERADO
     }
 
     @AfterEach
@@ -50,20 +49,15 @@ public class FrigateTest {
         Compass bearing = Compass.NORTH;
         IPosition pos = new Position(2, 3);
 
-        Frigate f = new Frigate(bearing, pos);
+        Frigate f = Frigate.of(bearing, pos);  // ALTERADO
 
         assertAll(
                 "NORTH path position validation",
-                () -> assertEquals(4, f.getPositions().size(),
-                        "Error: expected SIZE=4 but got " + f.getPositions().size()),
-                () -> assertEquals(new Position(2, 3), f.getPositions().get(0),
-                        "Error: expected first position row=2 col=3"),
-                () -> assertEquals(new Position(3, 3), f.getPositions().get(1),
-                        "Error: expected second position row=3 col=3"),
-                () -> assertEquals(new Position(4, 3), f.getPositions().get(2),
-                        "Error: expected third position row=4 col=3"),
-                () -> assertEquals(new Position(5, 3), f.getPositions().get(3),
-                        "Error: expected fourth position row=5 col=3")
+                () -> assertEquals(4, f.getPositions().size()),
+                () -> assertEquals(new Position(2, 3), f.getPositions().get(0)),
+                () -> assertEquals(new Position(3, 3), f.getPositions().get(1)),
+                () -> assertEquals(new Position(4, 3), f.getPositions().get(2)),
+                () -> assertEquals(new Position(5, 3), f.getPositions().get(3))
         );
     }
 
@@ -75,33 +69,29 @@ public class FrigateTest {
         Compass bearing = Compass.EAST;
         IPosition pos = new Position(10, 1);
 
-        Frigate f = new Frigate(bearing, pos);
+        Frigate f = Frigate.of(bearing, pos);  // ALTERADO
 
         assertAll(
                 "EAST path position validation",
-                () -> assertEquals(4, f.getPositions().size(),
-                        "Error: expected SIZE=4 but got " + f.getPositions().size()),
-                () -> assertEquals(new Position(10, 1), f.getPositions().get(0),
-                        "Error: expected first position row=10 col=1"),
-                () -> assertEquals(new Position(10, 2), f.getPositions().get(1),
-                        "Error: expected second position row=10 col=2"),
-                () -> assertEquals(new Position(10, 3), f.getPositions().get(2),
-                        "Error: expected third position row=10 col=3"),
-                () -> assertEquals(new Position(10, 4), f.getPositions().get(3),
-                        "Error: expected fourth position row=10 col=4")
+                () -> assertEquals(4, f.getPositions().size()),
+                () -> assertEquals(new Position(10, 1), f.getPositions().get(0)),
+                () -> assertEquals(new Position(10, 2), f.getPositions().get(1)),
+                () -> assertEquals(new Position(10, 3), f.getPositions().get(2)),
+                () -> assertEquals(new Position(10, 4), f.getPositions().get(3))
         );
     }
 
     /**
-     * Path 3: default branch — invalid bearing → must throw IllegalArgumentException
+     * Path 3: null bearing → must throw IllegalArgumentException
      */
     @Test
     public void constructor3() {
         IPosition pos = new Position(0, 0);
 
-        assertThrows(AssertionError.class,
-                () -> new Frigate(null, pos),
-                "Error: expected AssertionError when bearing is null but none thrown");
+        assertThrows(IllegalArgumentException.class,
+                () -> Frigate.of(null, pos),  // ALTERADO
+                "Error: expected IllegalArgumentException when bearing is null but none thrown"
+        );
     }
 
     // ============================================================
