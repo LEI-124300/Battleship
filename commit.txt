@@ -1,4 +1,0 @@
-Após a junção das várias branches de desenvolvimento e testes do grupo,
-foi realizada a sincronização da branch main.
-Este commit prepara o projeto para a geração do relatório final de cobertura de
-código em formato HTML, conforme solicitado no enunciado.
