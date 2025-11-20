@@ -1,210 +1,374 @@
 package iscteiul.ista.battleship;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("Tests for generic Ship behavior")
+@DisplayName("Tests for Ship class with full branch coverage")
 class ShipTest {
 
-    /** Simple test stub implementing IPosition for unit tests */
+    /* -------------------------------------------------------------
+       TEST POSITION IMPLEMENTATION
+    ------------------------------------------------------------- */
     private static class TestPosition implements IPosition {
         private final int row;
         private final int column;
-        private boolean hit;
-        private boolean occupied; // tracks occupation state if needed by IPosition
+        private boolean hit = false;
+        private boolean occupied = false;
 
         TestPosition(int row, int column) {
             this.row = row;
             this.column = column;
-            this.hit = false;
-            this.occupied = false;
         }
 
-        @Override
-        public int getRow() {
-            return row;
-        }
+        @Override public int getRow() { return row; }
+        @Override public int getColumn() { return column; }
+        @Override public boolean isHit() { return hit; }
+        @Override public void shoot() { hit = true; }
+        @Override public boolean isOccupied() { return occupied; }
+        @Override public void occupy() { occupied = true; }
 
-        @Override
-        public int getColumn() {
-            return column;
-        }
-
-        @Override
-        public boolean isHit() {
-            return hit;
-        }
-
-        @Override
-        public void shoot() {
-            this.hit = true;
-        }
-
-        /**
-         * Adjacent defined as any cell with row and column difference <= 1
-         * but not the same cell.
-         */
         @Override
         public boolean isAdjacentTo(IPosition other) {
             if (other == null) return false;
-            int dr = Math.abs(this.row - other.getRow());
-            int dc = Math.abs(this.column - other.getColumn());
-            if (dr == 0 && dc == 0) return false; // not adjacent, same cell
-            return Math.max(dr, dc) <= 1;
+            int dr = Math.abs(row - other.getRow());
+            int dc = Math.abs(column - other.getColumn());
+            return !(dr == 0 && dc == 0) && Math.max(dr, dc) <= 1;
         }
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (!(obj instanceof IPosition)) return false;
-            IPosition other = (IPosition) obj;
-            return this.row == other.getRow() && this.column == other.getColumn();
+            if (!(obj instanceof IPosition o)) return false;
+            return row == o.getRow() && column == o.getColumn();
         }
 
         @Override
         public String toString() {
             return "(" + row + "," + column + ")";
         }
-
-        @Override
-        public boolean isOccupied() {
-            return occupied;
-        }
-
-        // Provide a test helper to mark as occupied; avoid @Override in case interface uses a different signature.
-        public void occupy() {
-            this.occupied = true;
-        }
     }
 
-    /** Helper to create a simple Ship with contiguous positions along a bearing */
-    private Ship createShipAt(int startRow, int startCol, Compass bearing, int length) {
-        TestPosition start = new TestPosition(startRow, startCol);
-        // Implement the abstract getSize() so the anonymous subclass is concrete
+    /* -------------------------------------------------------------
+       SECOND POSITION TYPE (to cover equals branches)
+    ------------------------------------------------------------- */
+    private static class OtherPos implements IPosition {
+        int r, c;
+        OtherPos(int r, int c) { this.r = r; this.c = c; }
+
+        @Override public int getRow() { return r; }
+        @Override public int getColumn() { return c; }
+        @Override public boolean isHit() { return false; }
+        @Override public void shoot() {}
+        @Override public boolean isAdjacentTo(IPosition pos) { return false; }
+        @Override public boolean isOccupied() { return false; }
+        @Override public void occupy() {}
+    }
+
+
+    /* -------------------------------------------------------------
+       HELPER: CREATE SHIP
+    ------------------------------------------------------------- */
+    private Ship createShipAt(int r, int c, Compass bearing, int len) {
+        TestPosition start = new TestPosition(r, c);
+
         Ship s = new Ship("barca", bearing, start) {
-            @Override
-            public Integer getSize() {
-                return positions == null ? 0 : positions.size();
-            }
+            @Override public Integer getSize() { return positions.size(); }
         };
 
-        for (int i = 0; i < length; i++) {
-            int r = startRow;
-            int c = startCol;
+        for (int i = 0; i < len; i++) {
+            int rr = r, cc = c;
             switch (bearing) {
-                case NORTH:
-                    r = startRow - i;
-                    break;
-                case SOUTH:
-                    r = startRow + i;
-                    break;
-                case EAST:
-                    c = startCol + i;
-                    break;
-                case WEST:
-                    c = startCol - i;
-                    break;
-                default:
-                    // keep as start for unknown bearings
+                case NORTH -> rr = r - i;
+                case SOUTH -> rr = r + i;
+                case EAST  -> cc = c + i;
+                case WEST  -> cc = c - i;
             }
-            s.positions.add(new TestPosition(r, c));
+            s.positions.add(new TestPosition(rr, cc));
         }
         return s;
     }
 
-    @Test
-    @DisplayName("stillFloating returns true when any position not hit; false when all hit")
-    void testStillFloating() {
-        Ship s = createShipAt(5, 5, Compass.EAST, 3);
-        assertTrue(s.stillFloating(), "Ship with unhit positions should be floating");
 
-        // hit all positions
-        for (IPosition p : s.getPositions()) {
-            p.shoot();
+    private Ship defaultShip;
+
+    @BeforeEach
+    void setUp() { defaultShip = createShipAt(5, 5, Compass.EAST, 2); }
+
+    @AfterEach
+    void tearDown() { defaultShip = null; }
+
+
+    /* =============================================================
+       FLOATING TESTS
+    ============================================================= */
+    @Nested @DisplayName("Floating tests")
+    class FloatingTests {
+
+        @Test
+        void floatingTrueThenFalse() {
+            Ship s = createShipAt(5, 5, Compass.EAST, 3);
+            assertTrue(s.stillFloating());
+            s.getPositions().forEach(IPosition::shoot);
+            assertFalse(s.stillFloating());
         }
-        assertFalse(s.stillFloating(), "Ship with all positions hit should not be floating");
+
+        @Test
+        void floatingEmptyShip() {
+            Ship s = createShipAt(0, 0, Compass.NORTH, 0);
+            assertFalse(s.stillFloating());
+        }
+
+        @Test
+        void stillFloatingPartialHit() {
+            Ship s = createShipAt(5, 5, Compass.EAST, 2);
+            s.getPositions().get(0).shoot();
+            assertTrue(s.stillFloating());
+        }
     }
 
-    @Test
-    @DisplayName("Top/Bottom/Left/Right most position calculations")
-    void testExtremes() {
-        // create vertical ship going NORTH from (5,2): positions (5,2),(4,2),(3,2)
-        Ship s = createShipAt(5, 2, Compass.NORTH, 3);
-        assertEquals(3, s.getTopMostPos(), "Top most row should be smallest row");
-        assertEquals(5, s.getBottomMostPos(), "Bottom most row should be largest row");
-        assertEquals(2, s.getLeftMostPos(), "Left most column should be smallest column");
-        assertEquals(2, s.getRightMostPos(), "Right most column should be largest column");
+
+    /* =============================================================
+       EXTREMES TESTS
+    ============================================================= */
+    @Nested @DisplayName("Extreme coordinate tests")
+    class ExtremesTests {
+
+        @Test
+        void normalExtremes() {
+            Ship s = createShipAt(5, 2, Compass.NORTH, 3);
+            assertEquals(3, s.getTopMostPos());
+            assertEquals(5, s.getBottomMostPos());
+            assertEquals(2, s.getLeftMostPos());
+            assertEquals(2, s.getRightMostPos());
+        }
+
+        @Test
+        void extremesWestOrientation() {
+            Ship s = createShipAt(5,5,Compass.WEST,3); // (5,5),(5,4),(5,3)
+            assertEquals(3, s.getLeftMostPos());
+            assertEquals(5, s.getRightMostPos());
+        }
+
+        @Test
+        void extremesEastOrientation() {
+            Ship s = createShipAt(5,5,Compass.EAST,3); // (5,5),(5,6),(5,7)
+            assertEquals(5, s.getLeftMostPos());
+            assertEquals(7, s.getRightMostPos());
+        }
+
+        @Test
+        void extremesThrowForEmptyShip() {
+            Ship s = createShipAt(0, 0, Compass.NORTH, 0);
+            assertThrows(IndexOutOfBoundsException.class, s::getTopMostPos);
+            assertThrows(IndexOutOfBoundsException.class, s::getBottomMostPos);
+            assertThrows(IndexOutOfBoundsException.class, s::getLeftMostPos);
+            assertThrows(IndexOutOfBoundsException.class, s::getRightMostPos);
+        }
     }
 
-    @Test
-    @DisplayName("occupies returns true for contained position and false otherwise")
-    void testOccupies() {
-        Ship s = createShipAt(2, 3, Compass.SOUTH, 2); // positions (2,3),(3,3)
-        assertTrue(s.occupies(new TestPosition(2, 3)));
-        assertTrue(s.occupies(new TestPosition(3, 3)));
-        assertFalse(s.occupies(new TestPosition(4, 3)));
+
+    /* =============================================================
+       OCCUPIES TESTS
+    ============================================================= */
+    @Nested @DisplayName("Occupation tests")
+    class OccupiesTests {
+
+        @Test
+        void occupiesCorrectCells() {
+            Ship s = createShipAt(2, 3, Compass.SOUTH, 2);
+            assertTrue(s.occupies(new TestPosition(2, 3)));
+            assertTrue(s.occupies(new TestPosition(3, 3)));
+            assertFalse(s.occupies(new TestPosition(9, 9)));
+        }
+
+        @Test
+        void occupiesNullThrowsAssertion() {
+            Ship s = createShipAt(2, 3, Compass.SOUTH, 1);
+            assertThrows(AssertionError.class, () -> s.occupies(null));
+        }
+
+        @Test
+        void occupiesWorksWithDifferentImplementationMatching() {
+            Ship s = createShipAt(5,5,Compass.EAST,1);
+            assertTrue(s.occupies(new OtherPos(5,5)));
+        }
+
+        @Test
+        void occupiesFalseWhenCoordinatesDoNotMatch() {
+            Ship s = createShipAt(4,4,Compass.NORTH,1);
+            assertFalse(s.occupies(new OtherPos(4,99)));
+        }
+
+        @Test
+        void occupiesRowMatchButColumnDifferent() {
+            Ship s = createShipAt(4,4,Compass.NORTH,1);
+            assertFalse(s.occupies(new TestPosition(4,9)));
+        }
     }
 
-    @Test
-    @DisplayName("tooCloseTo(IPosition) detects adjacency")
-    void testTooCloseToPosition() {
-        Ship s = createShipAt(4, 4, Compass.EAST, 2); // (4,4),(4,5)
-        // adjacent diagonal to first cell
-        TestPosition adj = new TestPosition(3, 3);
-        assertTrue(s.tooCloseTo(adj), "Ship should be too close to adjacent diagonal position");
-        // far away
-        TestPosition far = new TestPosition(1, 1);
-        assertFalse(s.tooCloseTo(far), "Ship should not be too close to distant position");
+
+    /* =============================================================
+       ADJACENCY TESTS
+    ============================================================= */
+    @Nested @DisplayName("Adjacency tests")
+    class AdjacencyTests {
+
+        @Test
+        void tooCloseToPositionVariants() {
+            Ship s = createShipAt(10, 10, Compass.EAST, 2);
+            assertTrue(s.tooCloseTo(new TestPosition(9, 11)));
+            assertFalse(s.tooCloseTo(new TestPosition(15, 15)));
+
+            Ship one = createShipAt(20, 20, Compass.EAST, 1);
+            assertFalse(one.tooCloseTo(new TestPosition(20, 20)));
+
+            Ship empty = createShipAt(0, 0, Compass.EAST, 0);
+            assertFalse(empty.tooCloseTo(new TestPosition(0, 1)));
+        }
+
+        @Test
+        void tooCloseToNullPositionReturnsFalse() {
+            Ship s = createShipAt(10, 10, Compass.EAST, 2);
+            assertFalse(s.tooCloseTo((IPosition) null));
+        }
+
+        @Test
+        void tooCloseToShipVariants() {
+            Ship base = createShipAt(6, 6, Compass.EAST, 2);
+            Ship adj  = createShipAt(5, 7, Compass.NORTH, 1);
+            Ship far  = createShipAt(1, 1, Compass.NORTH, 1);
+            Ship empty = createShipAt(0, 0, Compass.NORTH, 0);
+
+            assertTrue(base.tooCloseTo(adj));
+            assertFalse(base.tooCloseTo(far));
+            assertFalse(base.tooCloseTo(empty));
+        }
+
+        @Test
+        void tooCloseToMultiPositionShip() {
+            Ship big = createShipAt(10,10,Compass.EAST,3);
+            Ship near = createShipAt(9,12,Compass.SOUTH,2);
+            assertTrue(big.tooCloseTo(near));
+        }
+
+        @Test
+        void tooCloseToDiagonalTwoAwayFalse() {
+            Ship s1 = createShipAt(5,5,Compass.EAST,2);
+            Ship s2 = createShipAt(7,7,Compass.NORTH,1); // diagonal but not adjacent
+            assertFalse(s1.tooCloseTo(s2));
+        }
+
+        @Test
+        void tooCloseToNullShipThrowsAssertion() {
+            Ship s = createShipAt(5, 5, Compass.NORTH, 1);
+            assertThrows(AssertionError.class, () -> s.tooCloseTo((IShip) null));
+        }
     }
 
-    @Test
-    @DisplayName("tooCloseTo(IShip) detects adjacency between ships")
-    void testTooCloseToShip() {
-        Ship s1 = createShipAt(6, 6, Compass.EAST, 2); // (6,6),(6,7)
-        Ship s2 = createShipAt(5, 7, Compass.NORTH, 1); // (5,7) adjacent to (6,7)
-        assertTrue(s1.tooCloseTo(s2), "Ships with adjacent cells should be too close");
 
-        Ship s3 = createShipAt(1, 1, Compass.EAST, 1);
-        assertFalse(s1.tooCloseTo(s3), "Distant ships should not be too close");
-    }
+    /* =============================================================
+       SHOOTING TESTS
+    ============================================================= */
+    @Nested @DisplayName("Shooting tests")
+    class ShootingTests {
 
-    @Test
-    @DisplayName("shoot marks matching position as hit")
-    void testShoot() {
-        Ship s = createShipAt(8, 8, Compass.WEST, 3); // (8,8),(8,7),(8,6)
-        TestPosition target = new TestPosition(8, 7);
-        s.shoot(target);
+        @Test
+        void shootMarksOnlyMatchingPosition() {
+            Ship s = createShipAt(8, 8, Compass.WEST, 3);
+            TestPosition target = new TestPosition(8, 7);
 
-        // only the matching position should be marked hit
-        boolean hitFound = false;
-        for (IPosition p : s.getPositions()) {
-            if (p.equals(target)) {
-                assertTrue(p.isHit(), "Matching position should be hit");
-                hitFound = true;
-            } else {
-                assertFalse(p.isHit(), "Non-target positions should remain unhit");
+            s.shoot(target);
+
+            for (IPosition pos : s.getPositions()) {
+                if (pos.equals(target)) assertTrue(pos.isHit());
+                else assertFalse(pos.isHit());
             }
         }
-        assertTrue(hitFound, "Target position must exist on the ship");
+
+        @Test
+        void shootNoMatchDoesNothing() {
+            Ship s = createShipAt(8, 8, Compass.WEST, 3);
+            s.shoot(new TestPosition(999, 999));
+            s.getPositions().forEach(p -> assertFalse(p.isHit()));
+        }
+
+        @Test
+        void shootSameInstancePosition() {
+            Ship s = createShipAt(4,4,Compass.EAST,2);
+            IPosition same = s.getPositions().get(0);
+
+            s.shoot(same);
+            assertTrue(same.isHit());
+        }
     }
 
-    @Test
-    @DisplayName("toString contains category, bearing letter, and position")
-    void testToString() {
-        Ship s = createShipAt(3, 2, Compass.NORTH, 1);
-        String rep = s.toString();
 
-        assertTrue(rep.contains("barca"), "toString should contain category");
-        assertTrue(rep.contains(" " + s.getBearing().getDirection() + " "),
-                "toString should contain bearing letter");
+    /* =============================================================
+       STRING + FACTORY TESTS
+    ============================================================= */
+    @Nested @DisplayName("String & factory tests")
+    class BuildShipTests {
 
-        // Because TestPosition.toString() = "(row,col)"
-        assertTrue(rep.contains("(") && rep.contains(")"),
-                "toString should include TestPosition string format");
+        @Test
+        void toStringContainsCategoryBearingAndPosition() {
+            Ship s = createShipAt(3, 2, Compass.NORTH, 1);
+            String rep = s.toString();
+
+            assertTrue(rep.startsWith("["));
+            assertTrue(rep.endsWith("]"));
+            assertTrue(rep.contains("barca"));
+            assertTrue(rep.contains(s.getBearing().toString()));
+            assertTrue(rep.contains("(3,2)"));
+        }
+
+        @Test
+        void toStringExactFormatRegexCheck() {
+            Ship s = createShipAt(1,1,Compass.SOUTH,1);
+            String rep = s.toString();
+
+            // Build dynamic regex using actual enum string
+            String expected = "\\[barca\\s+" + s.getBearing().toString() + "\\s+\\(1,1\\)\\]";
+            assertTrue(rep.matches(expected));
+        }
+
+
+        @Test
+        void buildShipValidKindProducesCorrectTypes() {
+            Position pos = new Position(1, 1);
+
+            assertTrue(Ship.buildShip("barca", Compass.NORTH, pos) instanceof Barge);
+            assertTrue(Ship.buildShip("caravela", Compass.EAST, pos) instanceof Caravel);
+            assertTrue(Ship.buildShip("nau", Compass.SOUTH, pos) instanceof Carrack);
+            assertTrue(Ship.buildShip("fragata", Compass.WEST, pos) instanceof Frigate);
+            assertTrue(Ship.buildShip("galeao", Compass.NORTH, pos) instanceof Galleon);
+        }
+
+        @Test
+        void buildShipCaseSensitiveFails() {
+            assertNull(Ship.buildShip("Barca", Compass.NORTH, new Position(0,0)));
+        }
+
+        @Test
+        void buildShipUnknownReturnsNull() {
+            assertNull(Ship.buildShip("somethingElse", Compass.NORTH, new Position(0,0)));
+        }
+
+        @Test
+        void buildShipNullKindThrowsNPE() {
+            assertThrows(NullPointerException.class,
+                    () -> Ship.buildShip(null, Compass.NORTH, new Position(0,0)));
+        }
+
+        @Test
+        void buildShipNullBearingThrowsAssertionError() {
+            assertThrows(AssertionError.class,
+                    () -> Ship.buildShip("barca", null, new Position(0,0)));
+        }
+
+        @Test
+        void buildShipNullPositionThrowsAssertionError() {
+            assertThrows(AssertionError.class,
+                    () -> Ship.buildShip("barca", Compass.NORTH, null));
+        }
     }
-
-
-
 }
