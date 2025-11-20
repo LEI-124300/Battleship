@@ -1,28 +1,26 @@
-# Battleship
+# Battleship – Projeto de Testes Unitários
 
-Basic academic version of Battleship game to build upon.
-Github Actions workflow added
-# Projeto – Configuração e Validação de DNS
-
-Este repositório contém o projeto desenvolvido para a configuração e validação de um sistema DNS, incluindo a criação de zonas direta e inversa, bem como a verificação do correto funcionamento através de comandos `dig`.
-
-## Conteúdo do Projeto
-
-- Configuração de servidores DNS
-- Definição de zonas diretas e reversas
-- Registos do tipo **A** e **PTR**
-- Testes de validação com o comando `dig`
-
-## Partilha do Projeto
-
-Após a execução correta da aplicação e criação dos artefactos solicitados, o projeto foi partilhado no GitHub entre os membros do grupo, conforme solicitado no enunciado.
+Este repositório contém o projeto **Battleship**, desenvolvido no âmbito das fichas de trabalho da unidade curricular, com foco na criação de testes unitários em JUnit e análise de cobertura de código.
 
 ## Membros do Grupo
 
-- **124300** – Mario Cossa  
-- **111641** – Ahamad Saccor  
-- **111342** – Pedro Correia  
+- 124300 – Mario Cossa  
+- 111641 – Ahamad Saccor  
+- 111342 – Pedro Correia  
+
+## Objetivo do Projeto
+
+- Analisar o código fornecido
+- Criar testes unitários com JUnit
+- Executar os testes com cobertura de código
+- Gerar relatórios de cobertura em HTML
+
+## Estrutura do Projeto
+
+- `src/main/java` – Código da aplicação
+- `src/test/java` – Testes unitários
+- `reports/` – Relatórios de cobertura de código (HTML)
 
 ---
 
-Repositório partilhado conforme os requisitos do trabalho prático.
+Projeto partilhado e gerido através do GitHub conforme solicitado no enunciado.
