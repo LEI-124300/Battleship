@@ -101,7 +101,7 @@ public class FrigateTest {
     // ============================================================
 
     @Test
-    public void getSize() {
+    public void getSizeTest() {
         Integer expected = 4;
         Integer actual = frigate.getSize();
 
