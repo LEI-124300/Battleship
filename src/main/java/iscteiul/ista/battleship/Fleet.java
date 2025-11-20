@@ -38,12 +38,14 @@ public class Fleet implements IFleet {
     @Override
     public boolean addShip(IShip s) {
         boolean result = false;
-        if ((ships.size() <= FLEET_SIZE) && (isInsideBoard(s)) && (!colisionRisk(s))) {
+        // CORREÇÃO: trocar <= por <
+        if ((ships.size() < FLEET_SIZE) && (isInsideBoard(s)) && (!colisionRisk(s))) {
             ships.add(s);
             result = true;
         }
         return result;
     }
+
 
     /*
      * (non-Javadoc)
